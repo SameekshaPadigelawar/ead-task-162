@@ -1,79 +1,3 @@
-// import React, { useState } from 'react';
-
-// function StudentForm() {
-//   const [formData, setFormData] = useState({
-//     name: '',
-//     rollno: '',
-//     gender: '',
-//     skills: ''
-//   });
-
-//   const handleChange = e => {
-//     setFormData(prev => ({
-//       ...prev,
-//       [e.target.name]: e.target.value
-//     }));
-//   };
-
-//  const handleSubmit = async e => {
-//   e.preventDefault();
-
-//   // Convert skills string to array
-//   const skillsArray = formData.skills
-//     .split(',')
-//     .map(skill => skill.trim())
-//     .filter(skill => skill.length > 0);  // Remove empty strings
-
-//   try {
-//     const response = await fetch('http://localhost:5000/students', {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ ...formData, skills: skillsArray })  // Send skills as array
-//     });
-
-//     const data = await response.json();
-//     alert(data.message || 'Form submitted successfully!');
-//     setFormData({ name: '', rollno: '', gender: '', skills: '' }); // reset form
-//   } catch (error) {
-//     alert('Error submitting form');
-//     console.error(error);
-//   }
-// };
-
-
-//   return (
-//     <form onSubmit={handleSubmit}>
-//       <div>
-//         <label>Name:</label><br />
-//         <input type="text" name="name" value={formData.name} onChange={handleChange} required />
-//       </div>
-
-//       <div>
-//         <label>Roll No:</label><br />
-//         <input type="text" name="rollno" value={formData.rollno} onChange={handleChange} required />
-//       </div>
-
-//       <div>
-//         <label>Gender:</label><br />
-//         <select name="gender" value={formData.gender} onChange={handleChange} required>
-//           <option value="">Select Gender</option>
-//           <option value="Male">Male</option>
-//           <option value="Female">Female</option>
-//           <option value="Other">Other</option>
-//         </select>
-//       </div>
-
-//       <div>
-//         <label>Skills (comma separated):</label><br />
-//         <input type="text" name="skills" value={formData.skills} onChange={handleChange} />
-//       </div>
-
-//       <button type="submit">Submit</button>
-//     </form>
-//   );
-// }
-
-// export default StudentForm;
 import React, { useState } from 'react';
 
 function StudentForm() {
@@ -81,41 +5,56 @@ function StudentForm() {
     name: '',
     rollno: '',
     gender: '',
-    skills: ''
+    skills: []
   });
 
+  const skillOptions = ['JavaScript', 'React', 'Node.js', 'Python', 'CSS'];
+
   const handleChange = e => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    const { name, value, type, checked } = e.target;
+
+    if (name === 'skills') {
+      // For checkbox, update array of skills
+      if (checked) {
+        setFormData(prev => ({
+          ...prev,
+          skills: [...prev.skills, value]
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          skills: prev.skills.filter(skill => skill !== value)
+        }));
+      }
+    } else {
+      // For text inputs and radio buttons
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
-    const skillsArray = formData.skills
-      .split(',')
-      .map(skill => skill.trim())
-      .filter(skill => skill.length > 0);
-
     try {
       const response = await fetch('http://localhost:5000/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, skills: skillsArray })
+        body: JSON.stringify(formData)
       });
 
       const data = await response.json();
       alert(data.message || 'Form submitted successfully!');
-      setFormData({ name: '', rollno: '', gender: '', skills: '' });
+      setFormData({ name: '', rollno: '', gender: '', skills: [] });
     } catch (error) {
       alert('Error submitting form');
       console.error(error);
     }
   };
 
-  // Styles object
+  // Styles object (same as before, adjust or add as needed)
   const styles = {
     container: {
       maxWidth: '400px',
@@ -145,18 +84,16 @@ function StudentForm() {
       boxSizing: 'border-box',
       transition: 'border-color 0.2s ease',
     },
-    inputFocus: {
-      borderColor: '#007bff',
-      outline: 'none',
+    radioGroup: {
+      display: 'flex',
+      gap: '15px',
+      marginTop: '6px',
     },
-    select: {
-      width: '100%',
-      padding: '10px 12px',
-      fontSize: '14px',
-      borderRadius: '4px',
-      border: '1px solid #ccc',
-      boxSizing: 'border-box',
-      cursor: 'pointer',
+    checkboxGroup: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      marginTop: '6px',
     },
     button: {
       width: '100%',
@@ -175,7 +112,6 @@ function StudentForm() {
     }
   };
 
-  // Handle button hover state
   const [btnHover, setBtnHover] = useState(false);
 
   return (
@@ -209,32 +145,40 @@ function StudentForm() {
         </div>
 
         <div style={styles.formGroup}>
-          <label style={styles.label} htmlFor="gender">Gender:</label>
-          <select
-            style={styles.select}
-            name="gender"
-            id="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
+          <label style={styles.label}>Gender:</label>
+          <div style={styles.radioGroup}>
+            {['Male', 'Female', 'Other'].map(g => (
+              <label key={g}>
+                <input
+                  type="radio"
+                  name="gender"
+                  value={g}
+                  checked={formData.gender === g}
+                  onChange={handleChange}
+                  required
+                />{' '}
+                {g}
+              </label>
+            ))}
+          </div>
         </div>
 
         <div style={styles.formGroup}>
-          <label style={styles.label} htmlFor="skills">Skills (comma separated):</label>
-          <input
-            style={styles.input}
-            type="text"
-            name="skills"
-            id="skills"
-            value={formData.skills}
-            onChange={handleChange}
-          />
+          <label style={styles.label}>Skills:</label>
+          <div style={styles.checkboxGroup}>
+            {skillOptions.map(skill => (
+              <label key={skill}>
+                <input
+                  type="checkbox"
+                  name="skills"
+                  value={skill}
+                  checked={formData.skills.includes(skill)}
+                  onChange={handleChange}
+                />{' '}
+                {skill}
+              </label>
+            ))}
+          </div>
         </div>
 
         <button
